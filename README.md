@@ -6,9 +6,7 @@ Permite crear una cuenta, cotizar viajes y administrar reservas propias.
 ## Preparar MySQL con Laragon
 
 1. Inicia MySQL desde Laragon.
-2. Si no tienes `.env`, copia `.env.example` con ese nombre. Si ya existe,
-   consérvalo y agrega `SECRET_KEY` con un valor aleatorio largo; no reemplaces
-   tus datos de conexión. No compartas ni subas `.env`.
+2. debes configura las base de datos en el archivo .env
 4. Instala los paquetes desde una terminal abierta en esta carpeta:
 
    ```powershell
