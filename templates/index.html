@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Agencia de viajes</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='app.css') }}">
+  <script src="{{ url_for('static', filename='app.js') }}" defer></script>
+</head>
+<body>
+  <header class="top">
+    <h1>✈ Agencia de viajes</h1>
+    <nav id="app-nav" hidden>
+      <a href="#inicio">Inicio</a>
+      <a href="#destinos">Destinos</a>
+      <a href="#reservar">Cotizar y reservar</a>
+      <a href="#mis-reservas">Mis reservas</a>
+      <span id="user-greeting"></span>
+      <button id="logout-button" class="nav-button" type="button">Cerrar sesión</button>
+    </nav>
+  </header>
+
+  <main>
+    <section id="auth-panel" class="auth-panel">
+      <h2 id="auth-title">Iniciar sesión</h2>
+      <p>Entra para ver y administrar tus reservas.</p>
+      <form id="auth-form">
+        <label id="name-field" hidden>Nombre
+          <input name="name" maxlength="120" autocomplete="name">
+        </label>
+        <label>Correo electrónico
+          <input name="email" type="email" maxlength="254" autocomplete="email" required>
+        </label>
+        <label>Contraseña
+          <input name="password" type="password" minlength="8" maxlength="128"
+                 autocomplete="current-password" required>
+        </label>
+        <button id="auth-submit" class="button" type="submit">Iniciar sesión</button>
+      </form>
+      <p class="auth-switch">
+        <span id="auth-switch-text">¿No tienes cuenta?</span>
+        <button id="auth-switch" class="text-button" type="button">Crear cuenta</button>
+      </p>
+    </section>
+
+    <div id="app-panel" hidden>
+      <section class="welcome" id="inicio">
+        <h2 id="welcome-heading">Bienvenido a tu próximo viaje</h2>
+        <p>Explora destinos, calcula el precio y administra tus reservas.</p>
+        <a class="button" href="#destinos">Ver destinos</a>
+      </section>
+
+      <section id="destinos">
+        <h2>Destinos disponibles</h2>
+        <p>El precio indicado es por persona.</p>
+        <div id="trip-grid" class="cards">Cargando destinos...</div>
+      </section>
+
+      <section id="reservar">
+        <h2 id="booking-title">Cotizar y hacer una reserva</h2>
+        <p>El cotizador calcula el precio del destino multiplicado por los viajeros.</p>
+        <form id="booking-form">
+          <input type="hidden" name="reservation_id" id="reservation-id">
+          <label>Destino
+            <select name="trip_id" id="trip-select" required>
+              <option value="">Selecciona un destino</option>
+            </select>
+          </label>
+          <label>Nombre completo
+            <input name="customer_name" maxlength="120" required>
+          </label>
+          <label>Correo electrónico
+            <input type="email" name="customer_email" maxlength="254" required>
+          </label>
+          <label>Fecha de salida
+            <input type="date" name="departure_date" id="departure-date" required>
+          </label>
+          <label>Número de viajeros
+            <select name="travelers" id="travelers">
+              <option value="1">1 viajero</option>
+              <option value="2">2 viajeros</option>
+              <option value="3">3 viajeros</option>
+              <option value="4">4 viajeros</option>
+              <option value="5">5 viajeros</option>
+              <option value="6">6 viajeros</option>
+              <option value="7">7 viajeros</option>
+              <option value="8">8 viajeros</option>
+              <option value="9">9 viajeros</option>
+            </select>
+          </label>
+          <p class="price">Cotización estimada: <strong id="price-total">Selecciona un destino</strong></p>
+          <div class="form-actions">
+            <button id="booking-submit" class="button" type="submit">Guardar reserva</button>
+            <button id="cancel-edit" class="button secondary" type="button" hidden>Cancelar edición</button>
+          </div>
+        </form>
+      </section>
+
+      <section id="mis-reservas">
+        <h2>Mis reservas</h2>
+        <p>Solo tú puedes ver y administrar las reservas de tu cuenta.</p>
+        <p class="demo-note">Pago de demostración: no ingreses datos bancarios. No se realiza ningún cobro real.</p>
+        <button class="button secondary" id="refresh-reservations" type="button">Actualizar lista</button>
+        <div id="reservation-list" class="reservation-list">Cargando reservas...</div>
+        <div id="ticket" class="ticket" hidden></div>
+      </section>
+    </div>
+    <p id="message" role="status" aria-live="polite"></p>
+  </main>
+
+</body>
+</html>
