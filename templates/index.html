@@ -25,9 +25,21 @@
       <h2 id="auth-title">Iniciar sesión</h2>
       <p>Entra para ver y administrar tus reservas.</p>
       <form id="auth-form">
-        <label id="name-field" hidden>Nombre
-          <input name="name" maxlength="120" autocomplete="name">
-        </label>
+        <div id="registration-fields" hidden>
+          <label>Nombre
+            <input name="name" maxlength="120" autocomplete="name">
+          </label>
+          <label>Fecha de nacimiento
+            <input id="birth-date" name="birth_date" type="date" autocomplete="bday">
+          </label>
+          <label>Documento de identidad
+            <input name="document_number" type="text" maxlength="40" autocomplete="off">
+          </label>
+          <label>Teléfono
+            <input name="phone" type="tel" maxlength="30" autocomplete="tel"
+                   placeholder="+57 300 123 4567">
+          </label>
+        </div>
         <label>Correo electrónico
           <input name="email" type="email" maxlength="254" autocomplete="email" required>
         </label>

@@ -4,7 +4,7 @@ const bookingForm = document.querySelector("#booking-form");
 const reservationList = document.querySelector("#reservation-list");
 const message = document.querySelector("#message");
 const authForm = document.querySelector("#auth-form");
-const nameField = document.querySelector("#name-field");
+const registrationFields = document.querySelector("#registration-fields");
 let trips = [];
 let currentUser = null;
 let isRegistering = false;
@@ -38,10 +38,10 @@ function showMessage(text, isError = false) {
 
 function setAuthMode(registering) {
   isRegistering = registering;
-  const nameInput = authForm.elements.name;
-  nameField.hidden = !registering;
-  nameInput.required = registering;
-  nameInput.autocomplete = registering ? "name" : "off";
+  registrationFields.hidden = !registering;
+  registrationFields.querySelectorAll("input").forEach((input) => {
+    input.required = registering;
+  });
   authForm.elements.password.autocomplete = registering ? "new-password" : "current-password";
   document.querySelector("#auth-title").textContent = registering ? "Crear cuenta" : "Iniciar sesión";
   document.querySelector("#auth-submit").textContent = registering ? "Crear cuenta" : "Iniciar sesión";
@@ -50,6 +50,8 @@ function setAuthMode(registering) {
   document.querySelector("#auth-switch").textContent =
     registering ? "Iniciar sesión" : "Crear cuenta";
 }
+
+setAuthMode(false);
 
 function showAuth() {
   currentUser = null;
@@ -198,6 +200,7 @@ tripsContainer.addEventListener("click", (event) => {
 tripSelect.addEventListener("change", updatePrice);
 document.querySelector("#travelers").addEventListener("change", updatePrice);
 document.querySelector("#departure-date").min = localDateString(new Date());
+document.querySelector("#birth-date").max = localDateString(new Date());
 document.querySelector("#refresh-reservations").addEventListener("click", loadReservations);
 document.querySelector("#cancel-edit").addEventListener("click", cancelEditing);
 
@@ -212,6 +215,12 @@ authForm.addEventListener("submit", async (event) => {
   button.disabled = true;
   try {
     const data = Object.fromEntries(new FormData(authForm));
+    if (!isRegistering) {
+      delete data.name;
+      delete data.birth_date;
+      delete data.document_number;
+      delete data.phone;
+    }
     const result = await api(isRegistering ? "/api/register" : "/api/login", {
       method: "POST",
       body: JSON.stringify(data),

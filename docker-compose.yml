@@ -1,0 +1,13 @@
+services:
+  web:
+    build: .
+    restart: unless-stopped
+    environment:
+      SECRET_KEY: ${DOCKER_APP_SECRET_KEY:-${SECRET_KEY:-educational-demo-secret-change-before-sharing}}
+      MYSQL_HOST: ${DOCKER_MYSQL_HOST:-host.docker.internal}
+      MYSQL_PORT: ${DOCKER_MYSQL_PORT:-${MYSQL_PORT:-3306}}
+      MYSQL_USER: ${DOCKER_MYSQL_USER:-${MYSQL_USER:-root}}
+      MYSQL_PASSWORD: ${DOCKER_MYSQL_PASSWORD:-${MYSQL_PASSWORD:-}}
+      MYSQL_DATABASE: ${DOCKER_MYSQL_DATABASE:-${MYSQL_DATABASE:-viajes_app}}
+    ports:
+      - "127.0.0.1:5000:5000"

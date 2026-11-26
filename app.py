@@ -129,10 +129,32 @@ def crear_base_y_tabla():
                 name VARCHAR(120) NOT NULL,
                 email VARCHAR(254) NOT NULL UNIQUE,
                 password_hash VARCHAR(255) NOT NULL,
-                created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+                birth_date DATE NULL,
+                document_number VARCHAR(40) NULL,
+                phone VARCHAR(30) NULL,
+                created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                UNIQUE KEY uq_users_document_number (document_number)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
             """
         )
+        for column_name, column_type in (
+            ("birth_date", "DATE"),
+            ("document_number", "VARCHAR(40)"),
+            ("phone", "VARCHAR(30)"),
+        ):
+            cursor.execute(f"SHOW COLUMNS FROM users LIKE '{column_name}'")
+            if cursor.fetchone() is None:
+                cursor.execute(
+                    f"ALTER TABLE users ADD COLUMN {column_name} {column_type} NULL"
+                )
+        cursor.execute(
+            "SHOW INDEX FROM users WHERE Key_name = 'uq_users_document_number'"
+        )
+        if cursor.fetchone() is None:
+            cursor.execute(
+                "CREATE UNIQUE INDEX uq_users_document_number "
+                "ON users (document_number)"
+            )
         cursor.execute(
             """
             CREATE TABLE IF NOT EXISTS reservations (
@@ -227,6 +249,55 @@ def validar_datos_reserva(datos):
     }
 
 
+def validar_datos_registro(datos):
+    nombre = datos.get("name", "")
+    correo = datos.get("email", "")
+    password = datos.get("password", "")
+    fecha_nacimiento = datos.get("birth_date", "")
+    documento = datos.get("document_number", "")
+    telefono = datos.get("phone", "")
+
+    if not isinstance(nombre, str) or not nombre.strip() or len(nombre.strip()) > 120:
+        raise ValueError("Ingresa tu nombre (máximo 120 caracteres).")
+    if not isinstance(correo, str):
+        raise ValueError("Ingresa un correo electrónico válido.")
+    correo = correo.strip().lower()
+    if not re.fullmatch(r"[^@\s]+@[^@\s]+\.[^@\s]+", correo) or len(correo) > 254:
+        raise ValueError("Ingresa un correo electrónico válido.")
+    if not isinstance(password, str) or not 8 <= len(password) <= 128:
+        raise ValueError("La contraseña debe tener entre 8 y 128 caracteres.")
+    if not isinstance(fecha_nacimiento, str):
+        raise ValueError("Ingresa una fecha de nacimiento válida.")
+    try:
+        fecha_nacimiento = date.fromisoformat(fecha_nacimiento)
+    except ValueError as error:
+        raise ValueError("Ingresa una fecha de nacimiento válida.") from error
+    if fecha_nacimiento > date.today():
+        raise ValueError("La fecha de nacimiento no puede estar en el futuro.")
+    if not isinstance(documento, str):
+        raise ValueError("Ingresa un documento de identidad válido.")
+    documento = documento.strip().upper()
+    if not 4 <= len(documento) <= 40:
+        raise ValueError("El documento debe tener entre 4 y 40 caracteres.")
+    if not isinstance(telefono, str):
+        raise ValueError("Ingresa un teléfono válido.")
+    telefono = telefono.strip()
+    if (
+        not re.fullmatch(r"[0-9+().\-\s]{7,30}", telefono)
+        or sum(character.isdigit() for character in telefono) < 7
+    ):
+        raise ValueError("Ingresa un teléfono válido con al menos 7 dígitos.")
+
+    return {
+        "name": nombre.strip(),
+        "email": correo,
+        "password": password,
+        "birth_date": fecha_nacimiento,
+        "document_number": documento,
+        "phone": telefono,
+    }
+
+
 def preparar_reserva(fila):
     viaje = buscar_viaje(fila[3])
     return {
@@ -287,33 +358,43 @@ def mostrar_viajes():
 
 @app.route("/api/register", methods=["POST"])
 def registrar_usuario():
-    datos = obtener_datos_json()
-    nombre = str(datos.get("name", "")).strip()
-    correo = str(datos.get("email", "")).strip().lower()
-    password = datos.get("password", "")
-
-    if not nombre or len(nombre) > 120:
-        return jsonify(error="Ingresa tu nombre (máximo 120 caracteres)."), 400
-    if not re.fullmatch(r"[^@\s]+@[^@\s]+\.[^@\s]+", correo) or len(correo) > 254:
-        return jsonify(error="Ingresa un correo electrónico válido."), 400
-    if not isinstance(password, str) or not 8 <= len(password) <= 128:
-        return jsonify(error="La contraseña debe tener entre 8 y 128 caracteres."), 400
+    try:
+        datos = validar_datos_registro(obtener_datos_json())
+    except ValueError as error:
+        return jsonify(error=str(error)), 400
 
     conexion = conectar_a_mysql()
     try:
         cursor = conexion.cursor()
         cursor.execute(
-            "INSERT INTO users (name, email, password_hash) VALUES (%s, %s, %s)",
-            (nombre, correo, generate_password_hash(password)),
+            """
+            INSERT INTO users
+                (name, email, password_hash, birth_date, document_number, phone)
+            VALUES (%s, %s, %s, %s, %s, %s)
+            """,
+            (
+                datos["name"],
+                datos["email"],
+                generate_password_hash(datos["password"]),
+                datos["birth_date"],
+                datos["document_number"],
+                datos["phone"],
+            ),
         )
         conexion.commit()
         session.clear()
         session["user_id"] = cursor.lastrowid
-        return jsonify(user={"id": cursor.lastrowid, "name": nombre, "email": correo}), 201
+        return jsonify(
+            user={
+                "id": cursor.lastrowid,
+                "name": datos["name"],
+                "email": datos["email"],
+            }
+        ), 201
     except Error as error:
         conexion.rollback()
         if error.errno == 1062:
-            return jsonify(error="Ya existe una cuenta con ese correo."), 409
+            return jsonify(error="Ya existe una cuenta con ese correo o documento."), 409
         raise
     finally:
         conexion.close()
@@ -571,4 +652,7 @@ if __name__ == "__main__":
         app.logger.warning(
             "SECRET_KEY no está configurada; las sesiones cerrarán al reiniciar."
         )
-    app.run(host="127.0.0.1", port=int(os.getenv("PORT", "5000")))
+    app.run(
+        host=os.getenv("HOST", "127.0.0.1"),
+        port=int(os.getenv("PORT", "5000")),
+    )

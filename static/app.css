@@ -27,6 +27,10 @@ nav {
   gap: 10px 22px;
 }
 
+nav[hidden] {
+  display: none;
+}
+
 nav a {
   color: white;
 }

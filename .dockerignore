@@ -1,0 +1,9 @@
+.git
+.env
+.venv
+venv
+__pycache__
+*.py[cod]
+tests
+capturas_guia
+Guia_actualizada_viajes.pdf
