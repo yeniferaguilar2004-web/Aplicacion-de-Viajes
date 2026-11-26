@@ -48,10 +48,15 @@ para crear la base y sus tablas.
 ## Ejecutar directamente con Python y Laragon
 
 1. Inicia MySQL desde Laragon.
+
 2. Copia `.env.example` como `.env` solo si aún no tienes un `.env`. Si ya
    existe, consérvalo y revisa `MYSQL_HOST`, `MYSQL_PORT`, `MYSQL_USER`,
    `MYSQL_PASSWORD`, `MYSQL_DATABASE` y `SECRET_KEY`.
 3. Instala dependencias e inicia la aplicación:
+
+2. debes configura las base de datos en el archivo .env
+4. Instala los paquetes desde una terminal abierta en esta carpeta:
+
 
    ```powershell
    python -m pip install -r requirements.txt
